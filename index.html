@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIRE Calculator — ETF VN30</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0f11; --surface: #16181c; --surface2: #1e2026;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+    --text: #e8e6e0; --muted: #7a7870;
+    --accent: #4f9cf9; --accent2: #5ecba1; --fire: #f4a24a; --danger: #e56b6b;
+    --mono: 'DM Mono', monospace; --serif: 'Fraunces', serif; --sans: 'DM Sans', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
+  .header { margin-bottom: 32px; }
+  .header h1 { font-family: var(--serif); font-size: 36px; font-weight: 300; letter-spacing: -0.5px; line-height: 1.2; }
+  .header h1 em { font-style: italic; color: var(--fire); }
+  .header p { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+  /* Mode toggle */
+  .mode-toggle { display: flex; gap: 0; margin-bottom: 32px; border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; width: fit-content; }
+  .mode-btn { font-family: var(--sans); font-size: 13px; padding: 8px 20px; background: transparent; color: var(--muted); border: none; cursor: pointer; transition: all 0.2s; }
+  .mode-btn.active { background: var(--accent); color: #fff; font-weight: 500; }
+  .mode-btn:first-child { border-right: 1px solid var(--border2); }
+
+  .scenarios { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .sc-btn { font-family: var(--sans); font-size: 12px; padding: 6px 14px; border: 1px solid var(--border2); border-radius: 20px; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .sc-btn:hover { border-color: var(--accent); color: var(--text); }
+  .sc-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+
+  .section-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; margin-bottom: 28px; }
+  .inputs-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px 32px; margin-bottom: 28px; }
+  .input-item label { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .input-item label span { font-size: 10px; opacity: 0.7; }
+  .input-row { display: flex; align-items: center; gap: 10px; }
+  input[type=range] { flex: 1; -webkit-appearance: none; height: 3px; border-radius: 2px; background: var(--surface2); outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
+  input[type=range].inf-range::-webkit-slider-thumb { background: var(--danger); }
+  .num-input { font-family: var(--mono); font-size: 13px; color: var(--text); background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; padding: 5px 8px; width: 72px; text-align: right; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
+  .num-input:focus { border-color: var(--accent); background: var(--surface); }
+  .num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .input-unit { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  .metrics { display: grid; gap: 12px; margin-bottom: 32px; }
+  .metrics.cols3 { grid-template-columns: repeat(3,1fr); }
+  .metrics.cols2 { grid-template-columns: repeat(2,1fr); }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .metric-value { font-family: var(--serif); font-size: 28px; font-weight: 300; line-height: 1; }
+  .metric-value.fire-val { color: var(--fire); }
+  .metric-value.green-val { color: var(--accent2); }
+  .metric-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  .charts-grid.full { grid-template-columns: 1fr; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .chart-card h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
+  .chart-wrap { position: relative; height: 220px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+  .legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .leg-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+
+  .post-fire-banner { background: linear-gradient(135deg, rgba(244,162,74,0.08), rgba(79,156,249,0.05)); border: 1px solid rgba(244,162,74,0.2); border-radius: 12px; padding: 20px; margin-bottom: 32px; }
+  .post-fire-banner h3 { font-size: 12px; color: var(--fire); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .post-fire-banner p { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .pf-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+  .pf-stat-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .pf-stat-val { font-family: var(--mono); font-size: 15px; color: var(--text); font-weight: 500; }
+  .pf-stat-val.green { color: var(--accent2); }
+  .pf-stat-val.red { color: var(--danger); }
+
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0; margin-bottom: 14px; }
+  .table-head h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .print-btn { font-family: var(--sans); font-size: 11px; padding: 5px 12px; border: 1px solid var(--border2); border-radius: 20px; background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .print-btn:hover { color: var(--text); border-color: var(--accent); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font-size: 11px; color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 16px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  thead th:first-child { text-align: left; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr.fire-row { background: rgba(244,162,74,0.10); }
+  tbody tr.post-row { background: rgba(229,107,107,0.04); }
+  tbody tr.sep-row td { background: rgba(244,162,74,0.06); color: var(--fire); font-size: 11px; text-align: center; padding: 8px 16px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; border-top: 1px solid rgba(244,162,74,0.2); border-bottom: 1px solid rgba(244,162,74,0.2); }
+  tbody td { padding: 9px 16px; font-size: 13px; text-align: right; color: var(--muted); white-space: nowrap; }
+  tbody td:first-child { text-align: left; color: var(--text); font-family: var(--mono); font-size: 13px; }
+  .badge { display: inline-block; font-size: 10px; font-family: var(--sans); padding: 2px 7px; border-radius: 20px; margin-left: 6px; font-weight: 500; vertical-align: middle; }
+  .badge-fire { background: rgba(244,162,74,0.2); color: var(--fire); }
+  .badge-withdraw { background: rgba(229,107,107,0.15); color: var(--danger); }
+  .num-green { color: var(--accent2) !important; }
+  .num-accent { color: var(--accent) !important; }
+  .num-red { color: var(--danger) !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1 id="pageTitle">Hành trình đến <em>tự do tài chính</em></h1>
+    <p id="pageSubtitle">ETF VN30 · Step-up đóng góp hàng năm · Quy tắc 4% có điều chỉnh lạm phát</p>
+  </div>
+
+  <!-- Mode toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeFire" onclick="setMode('fire')">Tính FIRE</button>
+    <button class="mode-btn" id="modeGrowth" onclick="setMode('growth')">Tăng trưởng thường</button>
+  </div>
+
+  <!-- Return rate buttons -->
+  <div class="scenarios">
+    <button class="sc-btn" onclick="setScenario(10)" id="btn10">Thận trọng · 10%/năm</button>
+    <button class="sc-btn active" onclick="setScenario(12)" id="btn12">Cơ sở · 12%/năm</button>
+    <button class="sc-btn" onclick="setScenario(15)" id="btn15">Lạc quan · 15%/năm</button>
+  </div>
+
+  <!-- Shared inputs -->
+  <p class="section-label">Thông số đầu tư</p>
+  <div class="inputs-grid" style="margin-bottom:0">
+    <div class="input-item">
+      <label>Đầu tư tháng đầu <span>tr/tháng</span></label>
+      <div class="input-row">
+        <input type="range" min="1000000" max="20000000" step="100000" value="6450000" id="sPMT" oninput="syncS('PMT')">
+        <input type="number" class="num-input" id="nPMT" value="6.45" step="0.1" min="0.5" max="200" oninput="syncN('PMT')">
+        <span class="input-unit">tr</span>
+      </div>
+    </div>
+    <div class="input-item">
+      <label>Tăng đóng góp mỗi năm <span>%</span></label>
+      <div class="input-row">
+        <input type="range" min="0" max="30" step="1" value="10" id="sStepup" oninput="syncS('Stepup')">
+        <input type="number" class="num-input" id="nStepup" value="10" step="1" min="0" max="100" oninput="syncN('Stepup')">
+        <span class="input-unit">%</span>
+      </div>
+    </div>
+    <div class="input-item">
+      <label>Chi tiêu hiện tại <span>tr/tháng</span></label>
+      <div class="input-row">
+        <input type="range" min="1000000" max="20000000" step="100000" value="5000000" id="sExp" oninput="syncS('Exp')">
+        <input type="number" class="num-input" id="nExp" value="5" step="0.1" min="0.5" max="100" oninput="syncN('Exp')">
+        <span class="input-unit">tr</span>
+      </div>
+    </div>
+    <div class="input-item">
+      <label>Tuổi hiện tại <span>tuổi</span></label>
+      <div class="input-row">
+        <input type="range" min="18" max="50" step="1" value="25" id="sAge" oninput="syncS('Age')">
+        <input type="number" class="num-input" id="nAge" value="25" step="1" min="18" max="70" oninput="syncN('Age')">
+        <span class="input-unit">tuổi</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIRE-only inputs -->
+  <div id="fireInputs">
+    <div style="height:28px"></div>
+    <p class="section-label">Giai đoạn rút tiền</p>
+    <div class="inputs-grid-3">
+      <div class="input-item">
+        <label>Lạm phát chi tiêu <span>%/năm</span></label>
+        <div class="input-row">
+          <input type="range" class="inf-range" min="0" max="15" step="0.5" value="4" id="sInflation" oninput="syncS('Inflation')">
+          <input type="number" class="num-input" id="nInflation" value="4" step="0.5" min="0" max="30" oninput="syncN('Inflation')">
+          <span class="input-unit">%</span>
+        </div>
+      </div>
+      <div class="input-item">
+        <label>Mục tiêu FIRE <span>× chi tiêu</span></label>
+        <div class="input-row">
+          <input type="range" min="15" max="40" step="1" value="25" id="sMultiple" oninput="syncS('Multiple')">
+          <input type="number" class="num-input" id="nMultiple" value="25" step="1" min="10" max="60" oninput="syncN('Multiple')">
+          <span class="input-unit">×</span>
+        </div>
+      </div>
+      <div class="input-item">
+        <label>Mô phỏng rút <span>năm</span></label>
+        <div class="input-row">
+          <input type="range" min="10" max="50" step="1" value="30" id="sPostYears" oninput="syncS('PostYears')">
+          <input type="number" class="num-input" id="nPostYears" value="30" step="1" min="5" max="60" oninput="syncN('PostYears')">
+          <span class="input-unit">năm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Growth-only inputs -->
+  <div id="growthInputs" style="display:none;">
+    <div style="height:28px"></div>
+    <p class="section-label">Mô phỏng tới khi nào</p>
+    <div style="max-width:340px;">
+      <div class="input-item">
+        <label>Xem đến tuổi <span>tuổi</span></label>
+        <div class="input-row">
+          <input type="range" min="30" max="80" step="1" value="60" id="sToAge" oninput="syncS('ToAge')">
+          <input type="number" class="num-input" id="nToAge" value="60" step="1" min="26" max="90" oninput="syncN('ToAge')">
+          <span class="input-unit">tuổi</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric cards -->
+  <div class="metrics cols3" id="metricsRow">
+    <div class="metric">
+      <div class="metric-label" id="m1Label">Mục tiêu FIRE</div>
+      <div class="metric-value fire-val" id="m1Val">—</div>
+      <div class="metric-sub" id="m1Sub">25 × chi tiêu năm</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label" id="m2Label">Đạt tự do tài chính</div>
+      <div class="metric-value" id="m2Val">—</div>
+      <div class="metric-sub" id="m2Sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label" id="m3Label">Thời gian còn lại</div>
+      <div class="metric-value" id="m3Val">—</div>
+      <div class="metric-sub" id="m3Sub">—</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid" id="chartsGrid">
+    <div class="chart-card">
+      <h3 id="chart1Title">Tăng trưởng danh mục</h3>
+      <div class="chart-wrap"><canvas id="chart1"></canvas></div>
+      <div class="legend" id="chart1Legend">
+        <span><span class="leg-dot" style="background:#4f9cf9"></span>Có step-up</span>
+        <span><span class="leg-dot" style="background:#5ecba1"></span>Cố định</span>
+        <span><span class="leg-dot" style="background:#f4a24a;opacity:0.7"></span>Mục tiêu FIRE</span>
+      </div>
+    </div>
+    <div class="chart-card" id="chart2Card">
+      <h3 id="chart2Title">Sau FIRE · rút tiền tăng theo lạm phát</h3>
+      <div class="chart-wrap"><canvas id="chart2"></canvas></div>
+      <div class="legend">
+        <span><span class="leg-dot" style="background:#4f9cf9"></span>Danh mục</span>
+        <span><span class="leg-dot" style="background:#e56b6b"></span>Chi tiêu năm đó</span>
+        <span><span class="leg-dot" style="background:#f4a24a;opacity:0.7"></span>Mục tiêu gốc</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post-FIRE banner (FIRE mode only) -->
+  <div class="post-fire-banner" id="postFireBanner">
+    <h3>Mô phỏng sau FIRE</h3>
+    <p>Dừng đóng góp · chi tiêu tăng theo lạm phát mỗi năm · danh mục vẫn tăng trưởng</p>
+    <div class="pf-stats">
+      <div><div class="pf-stat-label">Danh mục lúc FIRE</div><div class="pf-stat-val" id="pfStart">—</div></div>
+      <div><div class="pf-stat-label">Sau 10 năm rút</div><div class="pf-stat-val green" id="pf10">—</div></div>
+      <div><div class="pf-stat-label">Sau 20 năm rút</div><div class="pf-stat-val green" id="pf20">—</div></div>
+      <div><div class="pf-stat-label" id="pfLastLabel">Sau 30 năm rút</div><div class="pf-stat-val green" id="pfLast">—</div></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-head">
+      <h3 id="tableTitle">Breakdown từng năm · tích lũy → rút tiền</h3>
+      <button class="print-btn" onclick="printReport()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        In / Xuất PDF
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"><tr></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let rate = 12;
+let mode = 'fire'; // 'fire' | 'growth'
+let chart1, chart2;
+
+const cfg = {
+  PMT:       { s:'sPMT',       n:'nPMT',       toN: v=>+(v/1e6).toFixed(3), toS: v=>Math.round(v*1e6) },
+  Stepup:    { s:'sStepup',    n:'nStepup',    toN: v=>+v,                  toS: v=>+v },
+  Exp:       { s:'sExp',       n:'nExp',       toN: v=>+(v/1e6).toFixed(3), toS: v=>Math.round(v*1e6) },
+  Age:       { s:'sAge',       n:'nAge',       toN: v=>+v,                  toS: v=>+v },
+  Inflation: { s:'sInflation', n:'nInflation', toN: v=>+v,                  toS: v=>+v },
+  Multiple:  { s:'sMultiple',  n:'nMultiple',  toN: v=>+v,                  toS: v=>+v },
+  PostYears: { s:'sPostYears', n:'nPostYears', toN: v=>+v,                  toS: v=>+v },
+  ToAge:     { s:'sToAge',     n:'nToAge',     toN: v=>+v,                  toS: v=>+v },
+};
+function syncS(k) { const c=cfg[k]; document.getElementById(c.n).value=c.toN(+document.getElementById(c.s).value); update(); }
+function syncN(k) { const c=cfg[k]; let v=+document.getElementById(c.n).value; if(isNaN(v))return; document.getElementById(c.s).value=c.toS(v); update(); }
+function gv(k) { const v=+document.getElementById(cfg[k].n).value; return (k==='PMT'||k==='Exp')?v*1e6:v; }
+
+function setScenario(r) {
+  rate=r;
+  ['10','12','15'].forEach(x=>document.getElementById('btn'+x).classList.remove('active'));
+  document.getElementById('btn'+r).classList.add('active');
+  update();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeFire').classList.toggle('active', m==='fire');
+  document.getElementById('modeGrowth').classList.toggle('active', m==='growth');
+  document.getElementById('fireInputs').style.display  = m==='fire'   ? '' : 'none';
+  document.getElementById('growthInputs').style.display = m==='growth' ? '' : 'none';
+  document.getElementById('postFireBanner').style.display = m==='fire' ? '' : 'none';
+  document.getElementById('chart2Card').style.display = m==='fire' ? '' : 'none';
+  document.getElementById('chartsGrid').className = m==='fire' ? 'charts-grid' : 'charts-grid full';
+  update();
+}
+
+function fmtV(n) {
+  if(n>=1e9) return (n/1e9).toFixed(2)+' tỷ';
+  if(n>=1e6) return (n/1e6).toFixed(1)+' tr';
+  return Math.round(n).toLocaleString('vi');
+}
+function fmtFull(n) { return Math.round(n).toLocaleString('vi')+' đ'; }
+
+function simAccumulate(initPMT, stepup, mr, months) {
+  let fv=0, pmt=initPMT;
+  for(let i=0;i<months;i++){
+    if(i>0&&i%12===0) pmt*=(1+stepup/100);
+    fv=fv*(1+mr)+pmt;
+  }
+  return fv;
+}
+
+function update() {
+  const initPMT=gv('PMT'), stepup=gv('Stepup'), exp0=gv('Exp'), age=gv('Age');
+  const mr=rate/100/12, curYear=2026;
+
+  if(mode==='fire') updateFire(initPMT,stepup,exp0,age,mr,curYear);
+  else updateGrowth(initPMT,stepup,age,mr,curYear);
+}
+
+// ── FIRE MODE ─────────────────────────────────────────────────────────
+function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
+  const inflation=gv('Inflation'), multiple=gv('Multiple'), postYears=gv('PostYears');
+  const target=exp0*12*multiple;
+
+  // Find FIRE month
+  let fv=0,pmt=initPMT,fm=0;
+  while(fv<target&&fm<600){ if(fm>0&&fm%12===0)pmt*=(1+stepup/100); fv=fv*(1+mr)+pmt; fm++; }
+  const fireFV=fv, fireYears=Math.ceil(fm/12), fireAge=age+fireYears, fireYear=curYear+fireYears;
+  const expAtFire=exp0*Math.pow(1+inflation/100,fireYears);
+
+  // Metrics
+  document.getElementById('m1Label').textContent='Mục tiêu FIRE';
+  document.getElementById('m1Val').textContent=fmtV(target);
+  document.getElementById('m1Val').className='metric-value fire-val';
+  document.getElementById('m1Sub').textContent=multiple+'× chi tiêu năm hiện tại';
+  document.getElementById('m2Label').textContent='Đạt tự do tài chính';
+  document.getElementById('m2Val').textContent=fireYear;
+  document.getElementById('m2Val').className='metric-value';
+  document.getElementById('m2Sub').textContent='Năm '+fireAge+' tuổi';
+  document.getElementById('m3Label').textContent='Thời gian còn lại';
+  document.getElementById('m3Val').textContent='~'+fireYears+' năm';
+  document.getElementById('m3Val').className='metric-value';
+  document.getElementById('m3Sub').textContent=fm+' tháng tích lũy';
+  document.getElementById('metricsRow').className='metrics cols3';
+
+  // Chart 1: accumulation
+  const maxM=Math.min(fm+36,480);
+  const lbs=[],dS=[],dF=[],dT=[];
+  for(let m=0;m<=maxM;m+=3){
+    lbs.push(curYear+Math.floor(m/12));
+    dS.push(Math.round(simAccumulate(initPMT,stepup,mr,m)));
+    dF.push(Math.round(simAccumulate(initPMT,0,mr,m)));
+    dT.push(target);
+  }
+  document.getElementById('chart1Title').textContent='Tăng trưởng danh mục';
+  document.getElementById('chart1Legend').innerHTML='<span><span class="leg-dot" style="background:#4f9cf9"></span>Có step-up</span><span><span class="leg-dot" style="background:#5ecba1"></span>Cố định</span><span><span class="leg-dot" style="background:#f4a24a;opacity:0.7"></span>Mục tiêu FIRE</span>';
+  if(chart1)chart1.destroy();
+  chart1=new Chart(document.getElementById('chart1'),{type:'line',data:{labels:lbs,datasets:[
+    {data:dS,borderColor:'#4f9cf9',backgroundColor:'rgba(79,156,249,0.07)',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+    {data:dF,borderColor:'#5ecba1',fill:false,tension:0.4,pointRadius:0,borderWidth:1.5,borderDash:[5,4]},
+    {data:dT,borderColor:'#f4a24a',borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false}
+  ]},options:chartOpts()});
+
+  // Chart 2: post-FIRE
+  const pfLbs=[],pfD=[],pfWD=[];
+  let pfv=fireFV, mExp=expAtFire;
+  pfLbs.push(fireYear); pfD.push(Math.round(pfv)); pfWD.push(Math.round(mExp*12));
+  for(let y=1;y<=postYears;y++){
+    mExp*=(1+inflation/100);
+    for(let m=0;m<12;m++){pfv=pfv*(1+mr)-mExp; if(pfv<0)pfv=0;}
+    pfLbs.push(fireYear+y); pfD.push(Math.round(pfv)); pfWD.push(Math.round(mExp*12));
+    if(pfv<=0)break;
+  }
+  document.getElementById('pfStart').textContent=fmtV(fireFV);
+  document.getElementById('pf10').textContent=pfD.length>10?fmtV(pfD[10]):'—';
+  document.getElementById('pf20').textContent=pfD.length>20?fmtV(pfD[20]):'—';
+  const li=pfD.length-1;
+  document.getElementById('pfLastLabel').textContent='Sau '+li+' năm rút';
+  document.getElementById('pfLast').textContent=fmtV(pfD[li]);
+  document.getElementById('pfLast').className='pf-stat-val '+(pfD[li]>fireFV*.5?'green':'red');
+
+  if(chart2)chart2.destroy();
+  chart2=new Chart(document.getElementById('chart2'),{type:'line',data:{labels:pfLbs,datasets:[
+    {label:'Danh mục',data:pfD,borderColor:'#4f9cf9',backgroundColor:'rgba(79,156,249,0.07)',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+    {label:'Chi tiêu',data:pfWD,borderColor:'#e56b6b',fill:false,tension:0.3,pointRadius:0,borderWidth:1.5},
+    {label:'Mục tiêu',data:Array(pfLbs.length).fill(target),borderColor:'#f4a24a',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}
+  ]},options:{...chartOpts(),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtV(c.raw)}}}}});
+
+  // Table
+  document.getElementById('tableTitle').textContent='Breakdown từng năm · tích lũy → rút tiền';
+  document.getElementById('tableHead').innerHTML='<tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào năm đó</th><th>Lãi năm đó</th><th>Tổng vốn đã bỏ</th><th>Danh mục</th></tr>';
+
+  // Accumulation rows
+  let fv2=0,pmt2=initPMT,totalInv=0;
+  const accRows=[];
+  for(let m=0;m<12;m++){fv2+=pmt2;totalInv+=pmt2;} pmt2*=(1+stepup/100); // year1 no interest
+  for(let yr=2;yr<=60;yr++){
+    const prev=fv2; let yc=0;
+    for(let m=0;m<12;m++){fv2=fv2*(1+mr)+pmt2;totalInv+=pmt2;yc+=pmt2;}
+    const isFire=fv2>=target;
+    accRows.push({year:curYear+yr-1,age:age+yr,yc,totalInv:totalInv,interest:fv2-prev-yc,fv:fv2,isFire});
+    pmt2*=(1+stepup/100); if(isFire)break;
+  }
+
+  // Post-FIRE rows
+  const postRows=[];
+  let pfv2=accRows[accRows.length-1].fv, mExp2=expAtFire;
+  const pfSY=accRows[accRows.length-1].year+1, pfSA=accRows[accRows.length-1].age+1;
+  for(let yr=0;yr<postYears;yr++){
+    mExp2*=(1+inflation/100);
+    const prev=pfv2, yw=mExp2*12;
+    for(let m=0;m<12;m++){pfv2=pfv2*(1+mr)-mExp2;if(pfv2<0)pfv2=0;}
+    postRows.push({year:pfSY+yr,age:pfSA+yr,withdrawn:yw,growth:pfv2-prev+yw,fv:pfv2,mExp:mExp2});
+    if(pfv2<=0)break;
+  }
+
+  const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
+  // Year 0
+  const r0=document.createElement('tr'); r0.style.opacity='0.6';
+  r0.innerHTML=`<td>${curYear} <span style="font-size:10px;color:var(--muted);font-family:var(--sans)">bắt đầu</span></td><td>${age}</td><td class="num-green">+${fmtV(initPMT*12)}</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">${fmtV(initPMT*12)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(initPMT*12)}</td>`;
+  tbody.appendChild(r0);
+  accRows.forEach(row=>{
+    const tr=document.createElement('tr'); if(row.isFire)tr.className='fire-row';
+    tr.innerHTML=`<td>${row.year}${row.isFire?'<span class="badge badge-fire">FIRE</span>':''}</td><td>${row.age}</td><td class="num-green">+${fmtV(row.yc)}</td><td class="num-accent">+${fmtV(Math.max(0,row.interest))}</td><td style="color:var(--muted)">${fmtV(row.totalInv)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(row.fv)}</td>`;
+    tbody.appendChild(tr);
+  });
+  const sep=document.createElement('tr'); sep.className='sep-row';
+  sep.innerHTML=`<td colspan="6">Bắt đầu rút tiền · chi tiêu tăng ${inflation}%/năm · danh mục vẫn tăng trưởng</td>`;
+  tbody.appendChild(sep);
+  postRows.forEach(row=>{
+    const tr=document.createElement('tr'); tr.className='post-row';
+    tr.innerHTML=`<td>${row.year}<span class="badge badge-withdraw">Rút</span></td><td>${row.age}</td><td class="num-red">−${fmtV(row.withdrawn)} <span style="font-size:10px;color:var(--muted)">(${fmtV(row.mExp)}/th)</span></td><td class="${row.growth>=0?'num-green':'num-red'}">+${fmtV(Math.max(0,row.growth))}</td><td style="color:var(--muted);font-size:11px">${row.growth>=row.withdrawn?'▲ tăng ròng':'▼ giảm ròng'}</td><td style="color:var(--text);font-family:var(--mono)">${row.fv>0?fmtV(row.fv):'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  window._ps={mode:'fire',initPMT,stepup,exp0,age,inflation,multiple,postYears,rate,fireYear,fireAge,fireYears,fireFV,target,expAtFire,accRows,postRows,curYear};
+}
+
+// ── GROWTH MODE ───────────────────────────────────────────────────────
+function updateGrowth(initPMT,stepup,age,mr,curYear) {
+  const toAge=gv('ToAge');
+  const years=toAge-age;
+  const totalMonths=Math.max(years*12,12);
+
+  // simulate
+  let fvFinal=0,pmt=initPMT,totalInv=0;
+  for(let i=0;i<totalMonths;i++){
+    if(i>0&&i%12===0)pmt*=(1+stepup/100);
+    fvFinal=fvFinal*(1+mr)+pmt;
+    totalInv+=pmt;
+  }
+  // (totalInv from flat contribution for display)
+  let flatTotalInv=initPMT*12*years;
+
+  // Metrics: Danh mục cuối, Tổng vốn bỏ vào, Tổng lời
+  document.getElementById('m1Label').textContent='Danh mục lúc '+toAge+' tuổi';
+  document.getElementById('m1Val').textContent=fmtV(fvFinal);
+  document.getElementById('m1Val').className='metric-value green-val';
+  document.getElementById('m1Sub').textContent='Sau '+years+' năm đầu tư';
+  document.getElementById('m2Label').textContent='Tổng vốn đã bỏ vào';
+  document.getElementById('m2Val').textContent=fmtV(totalInv);
+  document.getElementById('m2Val').className='metric-value';
+  document.getElementById('m2Sub').textContent='Với step-up '+stepup+'%/năm';
+  document.getElementById('m3Label').textContent='Tổng lời từ lãi';
+  document.getElementById('m3Val').textContent=fmtV(fvFinal-totalInv);
+  document.getElementById('m3Val').className='metric-value';
+  document.getElementById('m3Sub').textContent='Hệ số nhân '+(fvFinal/totalInv).toFixed(2)+'×';
+  document.getElementById('metricsRow').className='metrics cols3';
+
+  // Chart 1: simple growth
+  const lbs=[],dS=[],dF=[];
+  for(let m=0;m<=totalMonths;m+=3){
+    lbs.push(curYear+Math.floor(m/12));
+    dS.push(Math.round(simAccumulate(initPMT,stepup,mr,m)));
+    dF.push(Math.round(simAccumulate(initPMT,0,mr,m)));
+  }
+  document.getElementById('chart1Title').textContent='Tăng trưởng danh mục đến '+toAge+' tuổi';
+  document.getElementById('chart1Legend').innerHTML='<span><span class="leg-dot" style="background:#4f9cf9"></span>Có step-up '+stepup+'%/năm</span><span><span class="leg-dot" style="background:#5ecba1"></span>Đóng cố định</span>';
+  if(chart1)chart1.destroy();
+  chart1=new Chart(document.getElementById('chart1'),{type:'line',data:{labels:lbs,datasets:[
+    {data:dS,borderColor:'#4f9cf9',backgroundColor:'rgba(79,156,249,0.07)',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+    {data:dF,borderColor:'#5ecba1',fill:false,tension:0.4,pointRadius:0,borderWidth:1.5,borderDash:[5,4]},
+  ]},options:chartOpts()});
+  if(chart2)chart2.destroy();
+
+  // Table
+  document.getElementById('tableTitle').textContent='Breakdown từng năm · tăng trưởng';
+  document.getElementById('tableHead').innerHTML='<tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào năm đó</th><th>Lãi năm đó</th><th>Tổng vốn đã bỏ</th><th>Danh mục</th></tr>';
+
+  const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
+  // Year 0
+  const r0=document.createElement('tr'); r0.style.opacity='0.6';
+  r0.innerHTML=`<td>${curYear} <span style="font-size:10px;color:var(--muted);font-family:var(--sans)">bắt đầu</span></td><td>${age}</td><td class="num-green">+${fmtV(initPMT*12)}</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">${fmtV(initPMT*12)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(initPMT*12)}</td>`;
+  tbody.appendChild(r0);
+
+  let fv2=0,pmt2=initPMT,tInv=0;
+  for(let m=0;m<12;m++){fv2+=pmt2;tInv+=pmt2;} pmt2*=(1+stepup/100);
+  for(let yr=2;yr<=years;yr++){
+    const prev=fv2; let yc=0;
+    for(let m=0;m<12;m++){fv2=fv2*(1+mr)+pmt2;tInv+=pmt2;yc+=pmt2;}
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${curYear+yr-1}</td><td>${age+yr}</td><td class="num-green">+${fmtV(yc)}</td><td class="num-accent">+${fmtV(Math.max(0,fv2-prev-yc))}</td><td style="color:var(--muted)">${fmtV(tInv)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(fv2)}</td>`;
+    tbody.appendChild(tr);
+    pmt2*=(1+stepup/100);
+  }
+
+  window._ps={mode:'growth',initPMT,stepup,age,rate,curYear,toAge,fvFinal,totalInv};
+}
+
+function chartOpts() {
+  return { responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw!=null?' '+fmtV(c.raw):null}}},
+    scales:{
+      x:{ticks:{color:'#7a7870',font:{size:10},maxTicksLimit:8,autoSkip:true},grid:{display:false}},
+      y:{ticks:{color:'#7a7870',font:{size:10},callback:v=>fmtV(v),maxTicksLimit:5},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}
+    }
+  };
+}
+
+function printReport() {
+  const s=window._ps; if(!s)return;
+  const win=window.open('','_blank');
+  let body='';
+
+  if(s.mode==='fire'){
+    const totalInv=s.accRows[s.accRows.length-1].totalInv;
+    const totalInterest=s.fireFV-totalInv;
+    const totalWithdrawn=s.postRows.reduce((a,r)=>a+r.withdrawn,0);
+    const lastFV=s.postRows.length?s.postRows[s.postRows.length-1].fv:s.fireFV;
+    const accHtml=s.accRows.map(r=>`<tr${r.isFire?' class="fire-row"':''}><td>${r.year}${r.isFire?' ★ FIRE':''}</td><td>${r.age}</td><td>+${fmtFull(r.yc)}</td><td>+${fmtFull(Math.max(0,r.interest))}</td><td>${fmtFull(r.totalInv)}</td><td><strong>${fmtFull(r.fv)}</strong></td></tr>`).join('');
+    const postHtml=s.postRows.map(r=>`<tr><td>${r.year} [Rút]</td><td>${r.age}</td><td>−${fmtFull(r.withdrawn)}<br><small>${fmtFull(r.mExp)}/tháng</small></td><td>+${fmtFull(Math.max(0,r.growth))}</td><td>${r.growth>=r.withdrawn?'▲ tăng ròng':'▼ giảm ròng'}</td><td><strong>${r.fv>0?fmtFull(r.fv):'—'}</strong></td></tr>`).join('');
+    body=`
+<h1>FIRE Calculator — ETF VN30 (${s.rate}%/năm)</h1>
+<p class="sub">In ngày ${new Date().toLocaleDateString('vi-VN')} · Step-up ${s.stepup}%/năm · Lạm phát ${s.inflation}%/năm</p>
+<div class="sg"><div class="sb hi"><div class="sl">Mục tiêu FIRE</div><div class="sv">${fmtFull(s.target)}</div><div class="ss">${s.multiple}× chi tiêu năm</div></div><div class="sb"><div class="sl">Đạt FIRE</div><div class="sv">${s.fireYear}</div><div class="ss">Năm ${s.fireAge} tuổi</div></div><div class="sb"><div class="sl">Danh mục lúc FIRE</div><div class="sv">${fmtFull(s.fireFV)}</div><div class="ss">Vượt ${fmtFull(s.fireFV-s.target)}</div></div></div>
+<h2>Tổng kết lời lãi</h2>
+<div class="pg"><div class="pb"><div class="pl">Tổng vốn bỏ vào</div><div class="pv" style="color:#2980b9">${fmtFull(totalInv)}</div></div><div class="pb"><div class="pl">Tổng lãi tích lũy</div><div class="pv">${fmtFull(totalInterest)}</div></div><div class="pb"><div class="pl">Hệ số nhân vốn</div><div class="pv">${(s.fireFV/totalInv).toFixed(2)}×</div></div><div class="pb"><div class="pl">Tổng đã rút (${s.postRows.length} năm)</div><div class="pv" style="color:#c0392b">${fmtFull(totalWithdrawn)}</div></div><div class="pb"><div class="pl">Danh mục còn lại</div><div class="pv">${fmtFull(lastFV)}</div></div><div class="pb"><div class="pl">Tổng nhận được</div><div class="pv">${fmtFull(totalWithdrawn+lastFV)}</div></div></div>
+<h2>Giai đoạn tích lũy</h2>
+<table><thead><tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào</th><th>Lãi năm</th><th>Tổng vốn</th><th>Danh mục</th></tr></thead><tbody>
+<tr style="opacity:0.6"><td>${s.curYear} (bắt đầu)</td><td>${s.age}</td><td>+${fmtFull(s.initPMT*12)}</td><td>—</td><td>${fmtFull(s.initPMT*12)}</td><td>${fmtFull(s.initPMT*12)}</td></tr>
+${accHtml}</tbody></table>
+<h2>Giai đoạn rút tiền</h2>
+<table><thead><tr><th>Năm</th><th>Tuổi</th><th>Rút ra</th><th>Lãi sinh ra</th><th>Tình trạng</th><th>Danh mục</th></tr></thead><tbody><tr class="sep"><td colspan="6">Bắt đầu rút tiền · chi tiêu tăng ${s.inflation}%/năm</td></tr>${postHtml}</tbody></table>`;
+  } else {
+    const years=s.toAge-s.age;
+    body=`
+<h1>Tăng trưởng ETF VN30 (${s.rate}%/năm)</h1>
+<p class="sub">In ngày ${new Date().toLocaleDateString('vi-VN')} · Step-up ${s.stepup}%/năm · Từ ${s.age} đến ${s.toAge} tuổi</p>
+<div class="sg"><div class="sb hi"><div class="sl">Danh mục lúc ${s.toAge} tuổi</div><div class="sv">${fmtFull(s.fvFinal)}</div><div class="ss">Sau ${years} năm</div></div><div class="sb"><div class="sl">Tổng vốn bỏ vào</div><div class="sv">${fmtFull(s.totalInv)}</div></div><div class="sb"><div class="sl">Tổng lãi</div><div class="sv">${fmtFull(s.fvFinal-s.totalInv)}</div><div class="ss">Hệ số ${(s.fvFinal/s.totalInv).toFixed(2)}×</div></div></div>`;
+  }
+
+  win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>FIRE Report</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;padding:32px 40px}
+h1{font-size:22px;font-weight:300;margin-bottom:4px}.sub{font-size:12px;color:#888;margin-bottom:24px}h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#555;margin:24px 0 10px;border-bottom:1px solid #eee;padding-bottom:6px}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.sb{border:1px solid #e0e0e0;border-radius:8px;padding:12px 16px}.sb.hi{border-color:#e67e22;background:#fef9f3}.sl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:5px}.sv{font-size:18px;font-weight:600}.sb.hi .sv{color:#e67e22}.ss{font-size:11px;color:#aaa;margin-top:3px}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}.pb{background:#f8fffe;border:1px solid #d4edda;border-radius:8px;padding:12px 16px}.pl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:4px}.pv{font-size:15px;font-weight:600;color:#27ae60}
+table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}thead th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#888;font-weight:500;padding:8px 10px;text-align:right;border-bottom:2px solid #eee}thead th:first-child{text-align:left}tbody td{padding:7px 10px;text-align:right;border-bottom:1px solid #f0f0f0;color:#333}tbody td:first-child{text-align:left;font-weight:500}
+tr.fire-row{background:#fef9f0}tr.sep td{background:#fef6ec;color:#e67e22;text-align:center;padding:6px;font-size:11px;font-weight:500;text-transform:uppercase;border-top:1px solid #fde3c0;border-bottom:1px solid #fde3c0}
+.footer{margin-top:20px;font-size:10px;color:#ccc;text-align:center}
+@media print{body{padding:16px 20px}table{page-break-inside:auto}tr{page-break-inside:avoid}}
+</style></head><body>${body}<div class="footer">Tạo bởi FIRE Calculator · ETF VN30 · Chỉ mang tính tham khảo</div>
+<script>window.onload=()=>window.print();<\/script></body></html>`);
+  win.document.close();
+}
+
+update();
+</script>
+</body>
+</html>
