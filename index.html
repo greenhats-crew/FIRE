@@ -279,7 +279,7 @@
 
 <script>
 let rate = 12;
-let mode = 'fire'; // 'fire' | 'growth'
+let mode = 'fire';
 let chart1, chart2;
 
 const cfg = {
@@ -292,6 +292,7 @@ const cfg = {
   PostYears: { s:'sPostYears', n:'nPostYears', toN: v=>+v,                  toS: v=>+v },
   ToAge:     { s:'sToAge',     n:'nToAge',     toN: v=>+v,                  toS: v=>+v },
 };
+
 function syncS(k) { const c=cfg[k]; document.getElementById(c.n).value=c.toN(+document.getElementById(c.s).value); update(); }
 function syncN(k) { const c=cfg[k]; let v=+document.getElementById(c.n).value; if(isNaN(v))return; document.getElementById(c.s).value=c.toS(v); update(); }
 function gv(k) { const v=+document.getElementById(cfg[k].n).value; return (k==='PMT'||k==='Exp')?v*1e6:v; }
@@ -346,7 +347,11 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
 
   // Find FIRE month
   let fv=0,pmt=initPMT,fm=0;
-  while(fv<target&&fm<600){ if(fm>0&&fm%12===0)pmt*=(1+stepup/100); fv=fv*(1+mr)+pmt; fm++; }
+  while(fv<target&&fm<600){ 
+    if(fm>0&&fm%12===0)pmt*=(1+stepup/100); 
+    fv=fv*(1+mr)+pmt; 
+    fm++; 
+  }
   const fireFV=fv, fireYears=Math.ceil(fm/12), fireAge=age+fireYears, fireYear=curYear+fireYears;
   const expAtFire=exp0*Math.pow(1+inflation/100,fireYears);
 
@@ -362,7 +367,7 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
   document.getElementById('m3Label').textContent='Thời gian còn lại';
   document.getElementById('m3Val').textContent='~'+fireYears+' năm';
   document.getElementById('m3Val').className='metric-value';
-  document.getElementById('m3Sub').textContent=fm+' tháng tích lũy';
+    document.getElementById('m3Sub').textContent=fm+' tháng tích lũy';
   document.getElementById('metricsRow').className='metrics cols3';
 
   // Chart 1: accumulation
@@ -412,16 +417,55 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
   document.getElementById('tableTitle').textContent='Breakdown từng năm · tích lũy → rút tiền';
   document.getElementById('tableHead').innerHTML='<tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào năm đó</th><th>Lãi năm đó</th><th>Tổng vốn đã bỏ</th><th>Danh mục</th></tr>';
 
-  // Accumulation rows
-  let fv2=0,pmt2=initPMT,totalInv=0;
+  // ✅ SỬA LỖI: Accumulation rows - tính đúng từ năm đầu tiên
+  let fv2=0, pmt2=initPMT, totalInv=0;
   const accRows=[];
-  for(let m=0;m<12;m++){fv2+=pmt2;totalInv+=pmt2;} pmt2*=(1+stepup/100); // year1 no interest
-  for(let yr=2;yr<=60;yr++){
-    const prev=fv2; let yc=0;
-    for(let m=0;m<12;m++){fv2=fv2*(1+mr)+pmt2;totalInv+=pmt2;yc+=pmt2;}
-    const isFire=fv2>=target;
-    accRows.push({year:curYear+yr-1,age:age+yr,yc,totalInv:totalInv,interest:fv2-prev-yc,fv:fv2,isFire});
-    pmt2*=(1+stepup/100); if(isFire)break;
+  
+  // Năm 1: có lãi từ đầu
+  for(let m=0; m<12; m++){
+    fv2 = fv2*(1+mr) + pmt2;
+    totalInv += pmt2;
+  }
+  let yearlyContribution = pmt2 * 12;
+  let yearlyInterest = fv2 - yearlyContribution;
+  
+  accRows.push({
+    year: curYear,
+    age: age + 1,
+    yc: yearlyContribution,
+    totalInv: totalInv,
+    interest: yearlyInterest,
+    fv: fv2,
+    isFire: fv2 >= target
+  });
+  
+  pmt2 *= (1 + stepup/100);
+  
+  // ✅ SỬA LỖI: Bắt đầu từ năm thứ 2, không bỏ qua năm nào
+  for(let yr=2; yr<=60; yr++){
+    if(accRows[accRows.length-1].isFire) break;
+    
+    const prevFV = fv2;
+    let yc = 0;
+    
+    for(let m=0; m<12; m++){
+      fv2 = fv2*(1+mr) + pmt2;
+      totalInv += pmt2;
+      yc += pmt2;
+    }
+    
+    const isFire = fv2 >= target;
+    accRows.push({
+      year: curYear + yr - 1,
+      age: age + yr,
+      yc: yc,
+      totalInv: totalInv,
+      interest: fv2 - prevFV - yc,
+      fv: fv2,
+      isFire: isFire
+    });
+    
+    pmt2 *= (1 + stepup/100);
   }
 
   // Post-FIRE rows
@@ -436,19 +480,21 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
     if(pfv2<=0)break;
   }
 
-  const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
-  // Year 0
-  const r0=document.createElement('tr'); r0.style.opacity='0.6';
-  r0.innerHTML=`<td>${curYear} <span style="font-size:10px;color:var(--muted);font-family:var(--sans)">bắt đầu</span></td><td>${age}</td><td class="num-green">+${fmtV(initPMT*12)}</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">${fmtV(initPMT*12)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(initPMT*12)}</td>`;
-  tbody.appendChild(r0);
+  const tbody=document.getElementById('tableBody'); 
+  tbody.innerHTML='';
+  
+  // ✅ Hiển thị table đúng
   accRows.forEach(row=>{
-    const tr=document.createElement('tr'); if(row.isFire)tr.className='fire-row';
-    tr.innerHTML=`<td>${row.year}${row.isFire?'<span class="badge badge-fire">FIRE</span>':''}</td><td>${row.age}</td><td class="num-green">+${fmtV(row.yc)}</td><td class="num-accent">+${fmtV(Math.max(0,row.interest))}</td><td style="color:var(--muted)">${fmtV(row.totalInv)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(row.fv)}</td>`;
+    const tr=document.createElement('tr'); 
+    if(row.isFire) tr.className='fire-row';
+    tr.innerHTML=`<td>${row.year}${row.isFire?' <span class="badge badge-fire">FIRE</span>':''}</td><td>${row.age}</td><td class="num-green">+${fmtV(row.yc)}</td><td class="num-accent">+${fmtV(Math.max(0,row.interest))}</td><td style="color:var(--muted)">${fmtV(row.totalInv)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(row.fv)}</td>`;
     tbody.appendChild(tr);
   });
+  
   const sep=document.createElement('tr'); sep.className='sep-row';
   sep.innerHTML=`<td colspan="6">Bắt đầu rút tiền · chi tiêu tăng ${inflation}%/năm · danh mục vẫn tăng trưởng</td>`;
   tbody.appendChild(sep);
+  
   postRows.forEach(row=>{
     const tr=document.createElement('tr'); tr.className='post-row';
     tr.innerHTML=`<td>${row.year}<span class="badge badge-withdraw">Rút</span></td><td>${row.age}</td><td class="num-red">−${fmtV(row.withdrawn)} <span style="font-size:10px;color:var(--muted)">(${fmtV(row.mExp)}/th)</span></td><td class="${row.growth>=0?'num-green':'num-red'}">+${fmtV(Math.max(0,row.growth))}</td><td style="color:var(--muted);font-size:11px">${row.growth>=row.withdrawn?'▲ tăng ròng':'▼ giảm ròng'}</td><td style="color:var(--text);font-family:var(--mono)">${row.fv>0?fmtV(row.fv):'—'}</td>`;
@@ -471,10 +517,8 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
     fvFinal=fvFinal*(1+mr)+pmt;
     totalInv+=pmt;
   }
-  // (totalInv from flat contribution for display)
-  let flatTotalInv=initPMT*12*years;
 
-  // Metrics: Danh mục cuối, Tổng vốn bỏ vào, Tổng lời
+  // Metrics
   document.getElementById('m1Label').textContent='Danh mục lúc '+toAge+' tuổi';
   document.getElementById('m1Val').textContent=fmtV(fvFinal);
   document.getElementById('m1Val').className='metric-value green-val';
@@ -489,7 +533,7 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
   document.getElementById('m3Sub').textContent='Hệ số nhân '+(fvFinal/totalInv).toFixed(2)+'×';
   document.getElementById('metricsRow').className='metrics cols3';
 
-  // Chart 1: simple growth
+  // Chart 1
   const lbs=[],dS=[],dF=[];
   for(let m=0;m<=totalMonths;m+=3){
     lbs.push(curYear+Math.floor(m/12));
@@ -509,17 +553,35 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
   document.getElementById('tableTitle').textContent='Breakdown từng năm · tăng trưởng';
   document.getElementById('tableHead').innerHTML='<tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào năm đó</th><th>Lãi năm đó</th><th>Tổng vốn đã bỏ</th><th>Danh mục</th></tr>';
 
-  const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
-  // Year 0
-  const r0=document.createElement('tr'); r0.style.opacity='0.6';
-  r0.innerHTML=`<td>${curYear} <span style="font-size:10px;color:var(--muted);font-family:var(--sans)">bắt đầu</span></td><td>${age}</td><td class="num-green">+${fmtV(initPMT*12)}</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">${fmtV(initPMT*12)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(initPMT*12)}</td>`;
-  tbody.appendChild(r0);
+  const tbody=document.getElementById('tableBody'); 
+  tbody.innerHTML='';
 
-  let fv2=0,pmt2=initPMT,tInv=0;
-  for(let m=0;m<12;m++){fv2+=pmt2;tInv+=pmt2;} pmt2*=(1+stepup/100);
-  for(let yr=2;yr<=years;yr++){
-    const prev=fv2; let yc=0;
-    for(let m=0;m<12;m++){fv2=fv2*(1+mr)+pmt2;tInv+=pmt2;yc+=pmt2;}
+  // ✅ SỬA LỖI: Growth mode cũng tương tự
+  let fv2=0, pmt2=initPMT, tInv=0;
+  
+  // Năm 1
+  for(let m=0; m<12; m++){
+    fv2 = fv2*(1+mr) + pmt2;
+    tInv += pmt2;
+  }
+  let yc1 = pmt2 * 12;
+  let int1 = fv2 - yc1;
+  
+  const tr0 = document.createElement('tr');
+  tr0.innerHTML=`<td>${curYear}</td><td>${age+1}</td><td class="num-green">+${fmtV(yc1)}</td><td class="num-accent">+${fmtV(Math.max(0,int1))}</td><td style="color:var(--muted)">${fmtV(tInv)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(fv2)}</td>`;
+  tbody.appendChild(tr0);
+  
+  pmt2 *= (1 + stepup/100);
+  
+  // Từ năm 2 trở đi
+  for(let yr=2; yr<=years; yr++){
+    const prev=fv2; 
+    let yc=0;
+    for(let m=0;m<12;m++){
+      fv2=fv2*(1+mr)+pmt2;
+      tInv+=pmt2;
+      yc+=pmt2;
+    }
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${curYear+yr-1}</td><td>${age+yr}</td><td class="num-green">+${fmtV(yc)}</td><td class="num-accent">+${fmtV(Math.max(0,fv2-prev-yc))}</td><td style="color:var(--muted)">${fmtV(tInv)}</td><td style="color:var(--text);font-family:var(--mono)">${fmtV(fv2)}</td>`;
     tbody.appendChild(tr);
@@ -530,8 +592,13 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
 }
 
 function chartOpts() {
-  return { responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw!=null?' '+fmtV(c.raw):null}}},
+  return { 
+    responsive:true, 
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:c=>c.raw!=null?' '+fmtV(c.raw):null}}
+    },
     scales:{
       x:{ticks:{color:'#7a7870',font:{size:10},maxTicksLimit:8,autoSkip:true},grid:{display:false}},
       y:{ticks:{color:'#7a7870',font:{size:10},callback:v=>fmtV(v),maxTicksLimit:5},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}
@@ -558,9 +625,7 @@ function printReport() {
 <h2>Tổng kết lời lãi</h2>
 <div class="pg"><div class="pb"><div class="pl">Tổng vốn bỏ vào</div><div class="pv" style="color:#2980b9">${fmtFull(totalInv)}</div></div><div class="pb"><div class="pl">Tổng lãi tích lũy</div><div class="pv">${fmtFull(totalInterest)}</div></div><div class="pb"><div class="pl">Hệ số nhân vốn</div><div class="pv">${(s.fireFV/totalInv).toFixed(2)}×</div></div><div class="pb"><div class="pl">Tổng đã rút (${s.postRows.length} năm)</div><div class="pv" style="color:#c0392b">${fmtFull(totalWithdrawn)}</div></div><div class="pb"><div class="pl">Danh mục còn lại</div><div class="pv">${fmtFull(lastFV)}</div></div><div class="pb"><div class="pl">Tổng nhận được</div><div class="pv">${fmtFull(totalWithdrawn+lastFV)}</div></div></div>
 <h2>Giai đoạn tích lũy</h2>
-<table><thead><tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào</th><th>Lãi năm</th><th>Tổng vốn</th><th>Danh mục</th></tr></thead><tbody>
-<tr style="opacity:0.6"><td>${s.curYear} (bắt đầu)</td><td>${s.age}</td><td>+${fmtFull(s.initPMT*12)}</td><td>—</td><td>${fmtFull(s.initPMT*12)}</td><td>${fmtFull(s.initPMT*12)}</td></tr>
-${accHtml}</tbody></table>
+<table><thead><tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào</th><th>Lãi năm</th><th>Tổng vốn</th><th>Danh mục</th></tr></thead><tbody>${accHtml}</tbody></table>
 <h2>Giai đoạn rút tiền</h2>
 <table><thead><tr><th>Năm</th><th>Tuổi</th><th>Rút ra</th><th>Lãi sinh ra</th><th>Tình trạng</th><th>Danh mục</th></tr></thead><tbody><tr class="sep"><td colspan="6">Bắt đầu rút tiền · chi tiêu tăng ${s.inflation}%/năm</td></tr>${postHtml}</tbody></table>`;
   } else {
