@@ -588,7 +588,7 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
     pmt2*=(1+stepup/100);
   }
 
-  window._ps={mode:'growth',initPMT,stepup,age,rate,curYear,toAge,fvFinal,totalInv};
+  window._ps={mode:'growth',initPMT,stepup,age,rate,curYear,toAge,years,fvFinal,totalInv};
 }
 
 function chartOpts() {
@@ -629,11 +629,19 @@ function printReport() {
 <h2>Giai đoạn rút tiền</h2>
 <table><thead><tr><th>Năm</th><th>Tuổi</th><th>Rút ra</th><th>Lãi sinh ra</th><th>Tình trạng</th><th>Danh mục</th></tr></thead><tbody><tr class="sep"><td colspan="6">Bắt đầu rút tiền · chi tiêu tăng ${s.inflation}%/năm</td></tr>${postHtml}</tbody></table>`;
   } else {
-    const years=s.toAge-s.age;
+    // ✅ FIX: Lấy dữ liệu table từ DOM cho chế độ growth
+    const tableBody=document.getElementById('tableBody');
+    const rows=Array.from(tableBody.querySelectorAll('tr'));
+    const tableHtml=rows.map(tr=>{
+      const cells=tr.querySelectorAll('td');
+      return `<tr><td>${cells[0].textContent}</td><td>${cells[1].textContent}</td><td>${cells[2].textContent}</td><td>${cells[3].textContent}</td><td>${cells[4].textContent}</td><td><strong>${cells[5].textContent}</strong></td></tr>`;
+    }).join('');
     body=`
 <h1>Tăng trưởng ETF VN30 (${s.rate}%/năm)</h1>
 <p class="sub">In ngày ${new Date().toLocaleDateString('vi-VN')} · Step-up ${s.stepup}%/năm · Từ ${s.age} đến ${s.toAge} tuổi</p>
-<div class="sg"><div class="sb hi"><div class="sl">Danh mục lúc ${s.toAge} tuổi</div><div class="sv">${fmtFull(s.fvFinal)}</div><div class="ss">Sau ${years} năm</div></div><div class="sb"><div class="sl">Tổng vốn bỏ vào</div><div class="sv">${fmtFull(s.totalInv)}</div></div><div class="sb"><div class="sl">Tổng lãi</div><div class="sv">${fmtFull(s.fvFinal-s.totalInv)}</div><div class="ss">Hệ số ${(s.fvFinal/s.totalInv).toFixed(2)}×</div></div></div>`;
+<div class="sg"><div class="sb hi"><div class="sl">Danh mục lúc ${s.toAge} tuổi</div><div class="sv">${fmtFull(s.fvFinal)}</div><div class="ss">Sau ${s.years} năm</div></div><div class="sb"><div class="sl">Tổng vốn bỏ vào</div><div class="sv">${fmtFull(s.totalInv)}</div></div><div class="sb"><div class="sl">Tổng lãi</div><div class="sv">${fmtFull(s.fvFinal-s.totalInv)}</div><div class="ss">Hệ số ${(s.fvFinal/s.totalInv).toFixed(2)}×</div></div></div>
+<h2>Chi tiết từng năm</h2>
+<table><thead><tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào</th><th>Lãi năm</th><th>Tổng vốn</th><th>Danh mục</th></tr></thead><tbody>${tableHtml}</tbody></table>`;
   }
 
   win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>FIRE Report</title><style>
