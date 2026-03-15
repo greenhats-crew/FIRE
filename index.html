@@ -16,89 +16,149 @@
     --mono: 'DM Mono', monospace; --serif: 'Fraunces', serif; --sans: 'DM Sans', sans-serif;
   }
   body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; min-height: 100vh; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
-  .header { margin-bottom: 32px; }
-  .header h1 { font-family: var(--serif); font-size: 36px; font-weight: 300; letter-spacing: -0.5px; line-height: 1.2; }
+  
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 16px 80px; }
+  @media (min-width: 600px) { .wrap { padding: 40px 20px 80px; } }
+  @media (min-width: 960px) { .wrap { padding: 48px 24px 80px; } }
+  
+  .header { margin-bottom: 20px; }
+  @media (min-width: 600px) { .header { margin-bottom: 28px; } }
+  .header h1 { font-family: var(--serif); font-size: clamp(20px, 6vw, 36px); font-weight: 300; letter-spacing: -0.5px; line-height: 1.2; }
   .header h1 em { font-style: italic; color: var(--fire); }
-  .header p { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .header p { color: var(--muted); font-size: clamp(11px, 2.5vw, 13px); margin-top: 6px; }
 
   /* Mode toggle */
-  .mode-toggle { display: flex; gap: 0; margin-bottom: 32px; border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; width: fit-content; }
-  .mode-btn { font-family: var(--sans); font-size: 13px; padding: 8px 20px; background: transparent; color: var(--muted); border: none; cursor: pointer; transition: all 0.2s; }
+  .mode-toggle { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; width: fit-content; }
+  @media (min-width: 600px) { .mode-toggle { margin-bottom: 24px; border-radius: 10px; } }
+  .mode-btn { font-family: var(--sans); font-size: clamp(11px, 2vw, 13px); padding: clamp(6px, 1.5vw, 8px) clamp(10px, 2.5vw, 20px); background: transparent; color: var(--muted); border: none; cursor: pointer; transition: all 0.2s; }
   .mode-btn.active { background: var(--accent); color: #fff; font-weight: 500; }
   .mode-btn:first-child { border-right: 1px solid var(--border2); }
 
-  .scenarios { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-  .sc-btn { font-family: var(--sans); font-size: 12px; padding: 6px 14px; border: 1px solid var(--border2); border-radius: 20px; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .scenarios { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  @media (min-width: 600px) { .scenarios { gap: 8px; margin-bottom: 20px; } }
+  .sc-btn { font-family: var(--sans); font-size: clamp(10px, 2vw, 12px); padding: clamp(4px, 1vw, 6px) clamp(8px, 2vw, 14px); border: 1px solid var(--border2); border-radius: 16px; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  @media (min-width: 600px) { .sc-btn { border-radius: 20px; } }
   .sc-btn:hover { border-color: var(--accent); color: var(--text); }
   .sc-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
 
-  .section-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-  .inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; margin-bottom: 28px; }
-  .inputs-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px 32px; margin-bottom: 28px; }
-  .input-item label { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .input-item label span { font-size: 10px; opacity: 0.7; }
-  .input-row { display: flex; align-items: center; gap: 10px; }
+  .section-label { font-size: clamp(9px, 2vw, 11px); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  
+  .inputs-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
+  @media (min-width: 640px) { .inputs-grid { grid-template-columns: 1fr 1fr; gap: 14px 18px; } }
+  @media (min-width: 960px) { .inputs-grid { gap: 20px 32px; margin-bottom: 28px; } }
+  
+  .inputs-grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
+  @media (min-width: 640px) { .inputs-grid-3 { grid-template-columns: 1fr 1fr; gap: 14px 18px; } }
+  @media (min-width: 960px) { .inputs-grid-3 { grid-template-columns: 1fr 1fr 1fr; gap: 20px 32px; margin-bottom: 28px; } }
+  
+  .input-item label { display: flex; justify-content: space-between; align-items: baseline; font-size: clamp(9px, 2vw, 11px); color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .input-item label span { font-size: clamp(8px, 1.5vw, 10px); opacity: 0.7; }
+  .input-row { display: flex; align-items: center; gap: 8px; }
+  @media (min-width: 600px) { .input-row { gap: 10px; } }
+  
   input[type=range] { flex: 1; -webkit-appearance: none; height: 3px; border-radius: 2px; background: var(--surface2); outline: none; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
-  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
+  @media (min-width: 600px) { input[type=range]::-webkit-slider-thumb { width: 14px; height: 14px; } }
+  input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
+  @media (min-width: 600px) { input[type=range]::-moz-range-thumb { width: 14px; height: 14px; } }
   input[type=range].inf-range::-webkit-slider-thumb { background: var(--danger); }
-  .num-input { font-family: var(--mono); font-size: 13px; color: var(--text); background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; padding: 5px 8px; width: 72px; text-align: right; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
+  
+  .num-input { font-family: var(--mono); font-size: clamp(12px, 2vw, 13px); color: var(--text); background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; padding: 4px 6px; width: clamp(56px, 12vw, 72px); text-align: right; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
+  @media (min-width: 600px) { .num-input { border-radius: 6px; padding: 5px 8px; } }
   .num-input:focus { border-color: var(--accent); background: var(--surface); }
   .num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-  .input-unit { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .input-unit { font-size: clamp(9px, 2vw, 11px); color: var(--muted); white-space: nowrap; }
 
-  .metrics { display: grid; gap: 12px; margin-bottom: 32px; }
-  .metrics.cols3 { grid-template-columns: repeat(3,1fr); }
-  .metrics.cols2 { grid-template-columns: repeat(2,1fr); }
-  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
-  .metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-  .metric-value { font-family: var(--serif); font-size: 28px; font-weight: 300; line-height: 1; }
+  .metrics { display: grid; gap: 10px; margin-bottom: 24px; }
+  @media (min-width: 640px) { .metrics { gap: 12px; margin-bottom: 28px; } }
+  .metrics.cols3 { grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .metrics.cols3 { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 960px) { .metrics.cols3 { grid-template-columns: 1fr 1fr 1fr; } }
+  .metrics.cols2 { grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .metrics.cols2 { grid-template-columns: 1fr 1fr; } }
+  
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  @media (min-width: 600px) { .metric { border-radius: 12px; padding: 16px 18px; } }
+  .metric-label { font-size: clamp(9px, 2vw, 11px); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .metric-value { font-family: var(--serif); font-size: clamp(20px, 5vw, 28px); font-weight: 300; line-height: 1; }
   .metric-value.fire-val { color: var(--fire); }
   .metric-value.green-val { color: var(--accent2); }
-  .metric-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .metric-sub { font-size: clamp(10px, 2vw, 12px); color: var(--muted); margin-top: 4px; }
 
-  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  .charts-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 24px; }
+  @media (min-width: 640px) { .charts-grid { gap: 14px; } }
+  @media (min-width: 960px) { .charts-grid { grid-template-columns: 1fr 1fr; gap: 16px; } }
   .charts-grid.full { grid-template-columns: 1fr; }
-  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .chart-card h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
-  .chart-wrap { position: relative; height: 220px; }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
-  .legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
-  .leg-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+  
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  @media (min-width: 600px) { .chart-card { border-radius: 12px; padding: 16px 18px; } }
+  @media (min-width: 960px) { .chart-card { padding: 20px; } }
+  .chart-card h3 { font-size: clamp(10px, 2vw, 12px); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  @media (min-width: 600px) { .chart-card h3 { margin-bottom: 14px; } }
+  .chart-wrap { position: relative; height: 180px; }
+  @media (min-width: 640px) { .chart-wrap { height: 200px; } }
+  @media (min-width: 960px) { .chart-wrap { height: 220px; } }
+  
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  @media (min-width: 600px) { .legend { gap: 12px; margin-top: 10px; } }
+  .legend span { display: flex; align-items: center; gap: 4px; font-size: clamp(9px, 2vw, 11px); color: var(--muted); }
+  .leg-dot { width: 6px; height: 6px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+  @media (min-width: 600px) { .leg-dot { width: 8px; height: 8px; } }
 
-  .post-fire-banner { background: linear-gradient(135deg, rgba(244,162,74,0.08), rgba(79,156,249,0.05)); border: 1px solid rgba(244,162,74,0.2); border-radius: 12px; padding: 20px; margin-bottom: 32px; }
-  .post-fire-banner h3 { font-size: 12px; color: var(--fire); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .post-fire-banner p { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-  .pf-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
-  .pf-stat-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
-  .pf-stat-val { font-family: var(--mono); font-size: 15px; color: var(--text); font-weight: 500; }
+  .post-fire-banner { background: linear-gradient(135deg, rgba(244,162,74,0.08), rgba(79,156,249,0.05)); border: 1px solid rgba(244,162,74,0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 24px; }
+  @media (min-width: 600px) { .post-fire-banner { border-radius: 12px; padding: 18px 20px; margin-bottom: 28px; } }
+  .post-fire-banner h3 { font-size: clamp(10px, 2vw, 12px); color: var(--fire); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .post-fire-banner p { font-size: clamp(11px, 2vw, 13px); color: var(--muted); margin-bottom: 12px; }
+  @media (min-width: 600px) { .post-fire-banner p { margin-bottom: 14px; } }
+  
+  .pf-stats { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  @media (min-width: 500px) { .pf-stats { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .pf-stats { grid-template-columns: repeat(4,1fr); } }
+  .pf-stat-label { font-size: clamp(8px, 2vw, 10px); color: var(--muted); margin-bottom: 2px; }
+  @media (min-width: 600px) { .pf-stat-label { margin-bottom: 3px; } }
+  .pf-stat-val { font-family: var(--mono); font-size: clamp(13px, 3vw, 15px); color: var(--text); font-weight: 500; }
   .pf-stat-val.green { color: var(--accent2); }
   .pf-stat-val.red { color: var(--danger); }
 
-  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .table-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0; margin-bottom: 14px; }
-  .table-head h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-  .print-btn { font-family: var(--sans); font-size: 11px; padding: 5px 12px; border: 1px solid var(--border2); border-radius: 20px; background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  @media (min-width: 600px) { .table-card { border-radius: 12px; } }
+  .table-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 0; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+  @media (min-width: 600px) { .table-head { padding: 14px 16px 0; margin-bottom: 12px; } }
+  .table-head h3 { font-size: clamp(10px, 2vw, 12px); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .print-btn { font-family: var(--sans); font-size: clamp(9px, 2vw, 11px); padding: clamp(4px, 1vw, 5px) clamp(8px, 2vw, 12px); border: 1px solid var(--border2); border-radius: 16px; background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  @media (min-width: 600px) { .print-btn { border-radius: 20px; } }
   .print-btn:hover { color: var(--text); border-color: var(--accent); }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  thead th { font-size: 11px; color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 16px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(11px, 2vw, 13px); }
+  thead th { font-size: clamp(9px, 1.8vw, 11px); color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  @media (min-width: 600px) { thead th { padding: 10px 12px; } }
   thead th:first-child { text-align: left; }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--surface2); }
   tbody tr.fire-row { background: rgba(244,162,74,0.10); }
   tbody tr.post-row { background: rgba(229,107,107,0.04); }
-  tbody tr.sep-row td { background: rgba(244,162,74,0.06); color: var(--fire); font-size: 11px; text-align: center; padding: 8px 16px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; border-top: 1px solid rgba(244,162,74,0.2); border-bottom: 1px solid rgba(244,162,74,0.2); }
-  tbody td { padding: 9px 16px; font-size: 13px; text-align: right; color: var(--muted); white-space: nowrap; }
-  tbody td:first-child { text-align: left; color: var(--text); font-family: var(--mono); font-size: 13px; }
-  .badge { display: inline-block; font-size: 10px; font-family: var(--sans); padding: 2px 7px; border-radius: 20px; margin-left: 6px; font-weight: 500; vertical-align: middle; }
+  tbody tr.sep-row td { background: rgba(244,162,74,0.06); color: var(--fire); font-size: clamp(9px, 2vw, 11px); text-align: center; padding: 6px 10px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; border-top: 1px solid rgba(244,162,74,0.2); border-bottom: 1px solid rgba(244,162,74,0.2); }
+  @media (min-width: 600px) { tbody tr.sep-row td { padding: 8px 12px; } }
+  tbody td { padding: 7px 8px; text-align: right; color: var(--muted); white-space: nowrap; }
+  @media (min-width: 600px) { tbody td { padding: 8px 10px; } }
+  tbody td:first-child { text-align: left; color: var(--text); font-family: var(--mono); font-size: clamp(11px, 2vw, 13px); }
+  
+  .badge { display: inline-block; font-size: clamp(8px, 1.5vw, 10px); font-family: var(--sans); padding: 1px 5px; border-radius: 12px; margin-left: 4px; font-weight: 500; vertical-align: middle; }
+  @media (min-width: 600px) { .badge { margin-left: 6px; padding: 2px 7px; border-radius: 14px; } }
   .badge-fire { background: rgba(244,162,74,0.2); color: var(--fire); }
   .badge-withdraw { background: rgba(229,107,107,0.15); color: var(--danger); }
   .num-green { color: var(--accent2) !important; }
   .num-accent { color: var(--accent) !important; }
   .num-red { color: var(--danger) !important; }
+  
+  /* Mobile optimizations */
+  @media (max-width: 500px) {
+    body { font-size: 13px; }
+    .input-row { flex-wrap: wrap; }
+    table { font-size: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -111,14 +171,14 @@
   <!-- Mode toggle -->
   <div class="mode-toggle">
     <button class="mode-btn active" id="modeFire" onclick="setMode('fire')">Tính FIRE</button>
-    <button class="mode-btn" id="modeGrowth" onclick="setMode('growth')">Tăng trưởng thường</button>
+    <button class="mode-btn" id="modeGrowth" onclick="setMode('growth')">Tăng trưởng</button>
   </div>
 
   <!-- Return rate buttons -->
   <div class="scenarios">
-    <button class="sc-btn" onclick="setScenario(10)" id="btn10">Thận trọng · 10%/năm</button>
-    <button class="sc-btn active" onclick="setScenario(12)" id="btn12">Cơ sở · 12%/năm</button>
-    <button class="sc-btn" onclick="setScenario(15)" id="btn15">Lạc quan · 15%/năm</button>
+    <button class="sc-btn" onclick="setScenario(10)" id="btn10">10%/năm</button>
+    <button class="sc-btn active" onclick="setScenario(12)" id="btn12">12%/năm</button>
+    <button class="sc-btn" onclick="setScenario(15)" id="btn15">15%/năm</button>
   </div>
 
   <!-- Shared inputs -->
@@ -133,7 +193,7 @@
       </div>
     </div>
     <div class="input-item">
-      <label>Tăng đóng góp mỗi năm <span>%</span></label>
+      <label>Tăng đóng góp <span>%/năm</span></label>
       <div class="input-row">
         <input type="range" min="0" max="30" step="1" value="10" id="sStepup" oninput="syncS('Stepup')">
         <input type="number" class="num-input" id="nStepup" value="10" step="1" min="0" max="100" oninput="syncN('Stepup')">
@@ -160,7 +220,7 @@
 
   <!-- FIRE-only inputs -->
   <div id="fireInputs">
-    <div style="height:28px"></div>
+    <div style="height:20px"></div>
     <p class="section-label">Giai đoạn rút tiền</p>
     <div class="inputs-grid-3">
       <div class="input-item">
@@ -192,9 +252,9 @@
 
   <!-- Growth-only inputs -->
   <div id="growthInputs" style="display:none;">
-    <div style="height:28px"></div>
+    <div style="height:20px"></div>
     <p class="section-label">Mô phỏng tới khi nào</p>
-    <div style="max-width:340px;">
+    <div style="max-width:100%;">
       <div class="input-item">
         <label>Xem đến tuổi <span>tuổi</span></label>
         <div class="input-row">
@@ -241,8 +301,8 @@
       <div class="chart-wrap"><canvas id="chart2"></canvas></div>
       <div class="legend">
         <span><span class="leg-dot" style="background:#4f9cf9"></span>Danh mục</span>
-        <span><span class="leg-dot" style="background:#e56b6b"></span>Chi tiêu năm đó</span>
-        <span><span class="leg-dot" style="background:#f4a24a;opacity:0.7"></span>Mục tiêu gốc</span>
+        <span><span class="leg-dot" style="background:#e56b6b"></span>Chi tiêu</span>
+        <span><span class="leg-dot" style="background:#f4a24a;opacity:0.7"></span>Mục tiêu</span>
       </div>
     </div>
   </div>
@@ -250,7 +310,7 @@
   <!-- Post-FIRE banner (FIRE mode only) -->
   <div class="post-fire-banner" id="postFireBanner">
     <h3>Mô phỏng sau FIRE</h3>
-    <p>Dừng đóng góp · chi tiêu tăng theo lạm phát mỗi năm · danh mục vẫn tăng trưởng</p>
+    <p>Dừng đóng góp · chi tiêu tăng theo lạm phát · danh mục vẫn tăng trưởng</p>
     <div class="pf-stats">
       <div><div class="pf-stat-label">Danh mục lúc FIRE</div><div class="pf-stat-val" id="pfStart">—</div></div>
       <div><div class="pf-stat-label">Sau 10 năm rút</div><div class="pf-stat-val green" id="pf10">—</div></div>
@@ -264,8 +324,8 @@
     <div class="table-head">
       <h3 id="tableTitle">Breakdown từng năm · tích lũy → rút tiền</h3>
       <button class="print-btn" onclick="printReport()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        In / Xuất PDF
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        In / Xuất
       </button>
     </div>
     <div class="table-wrap">
@@ -367,7 +427,7 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
   document.getElementById('m3Label').textContent='Thời gian còn lại';
   document.getElementById('m3Val').textContent='~'+fireYears+' năm';
   document.getElementById('m3Val').className='metric-value';
-    document.getElementById('m3Sub').textContent=fm+' tháng tích lũy';
+  document.getElementById('m3Sub').textContent=fm+' tháng tích lũy';
   document.getElementById('metricsRow').className='metrics cols3';
 
   // Chart 1: accumulation
@@ -417,11 +477,10 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
   document.getElementById('tableTitle').textContent='Breakdown từng năm · tích lũy → rút tiền';
   document.getElementById('tableHead').innerHTML='<tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào năm đó</th><th>Lãi năm đó</th><th>Tổng vốn đã bỏ</th><th>Danh mục</th></tr>';
 
-  // ✅ SỬA LỖI: Accumulation rows - tính đúng từ năm đầu tiên
+  // ✅ Accumulation rows
   let fv2=0, pmt2=initPMT, totalInv=0;
   const accRows=[];
   
-  // Năm 1: có lãi từ đầu
   for(let m=0; m<12; m++){
     fv2 = fv2*(1+mr) + pmt2;
     totalInv += pmt2;
@@ -441,7 +500,6 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
   
   pmt2 *= (1 + stepup/100);
   
-  // ✅ SỬA LỖI: Bắt đầu từ năm thứ 2, không bỏ qua năm nào
   for(let yr=2; yr<=60; yr++){
     if(accRows[accRows.length-1].isFire) break;
     
@@ -483,7 +541,6 @@ function updateFire(initPMT,stepup,exp0,age,mr,curYear) {
   const tbody=document.getElementById('tableBody'); 
   tbody.innerHTML='';
   
-  // ✅ Hiển thị table đúng
   accRows.forEach(row=>{
     const tr=document.createElement('tr'); 
     if(row.isFire) tr.className='fire-row';
@@ -510,7 +567,6 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
   const years=toAge-age;
   const totalMonths=Math.max(years*12,12);
 
-  // simulate
   let fvFinal=0,pmt=initPMT,totalInv=0;
   for(let i=0;i<totalMonths;i++){
     if(i>0&&i%12===0)pmt*=(1+stepup/100);
@@ -518,7 +574,6 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
     totalInv+=pmt;
   }
 
-  // Metrics
   document.getElementById('m1Label').textContent='Danh mục lúc '+toAge+' tuổi';
   document.getElementById('m1Val').textContent=fmtV(fvFinal);
   document.getElementById('m1Val').className='metric-value green-val';
@@ -533,7 +588,6 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
   document.getElementById('m3Sub').textContent='Hệ số nhân '+(fvFinal/totalInv).toFixed(2)+'×';
   document.getElementById('metricsRow').className='metrics cols3';
 
-  // Chart 1
   const lbs=[],dS=[],dF=[];
   for(let m=0;m<=totalMonths;m+=3){
     lbs.push(curYear+Math.floor(m/12));
@@ -549,17 +603,14 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
   ]},options:chartOpts()});
   if(chart2)chart2.destroy();
 
-  // Table
   document.getElementById('tableTitle').textContent='Breakdown từng năm · tăng trưởng';
   document.getElementById('tableHead').innerHTML='<tr><th>Năm</th><th>Tuổi</th><th>Bỏ vào năm đó</th><th>Lãi năm đó</th><th>Tổng vốn đã bỏ</th><th>Danh mục</th></tr>';
 
   const tbody=document.getElementById('tableBody'); 
   tbody.innerHTML='';
 
-  // ✅ SỬA LỖI: Growth mode cũng tương tự
   let fv2=0, pmt2=initPMT, tInv=0;
   
-  // Năm 1
   for(let m=0; m<12; m++){
     fv2 = fv2*(1+mr) + pmt2;
     tInv += pmt2;
@@ -573,7 +624,6 @@ function updateGrowth(initPMT,stepup,age,mr,curYear) {
   
   pmt2 *= (1 + stepup/100);
   
-  // Từ năm 2 trở đi
   for(let yr=2; yr<=years; yr++){
     const prev=fv2; 
     let yc=0;
@@ -600,8 +650,8 @@ function chartOpts() {
       tooltip:{callbacks:{label:c=>c.raw!=null?' '+fmtV(c.raw):null}}
     },
     scales:{
-      x:{ticks:{color:'#7a7870',font:{size:10},maxTicksLimit:8,autoSkip:true},grid:{display:false}},
-      y:{ticks:{color:'#7a7870',font:{size:10},callback:v=>fmtV(v),maxTicksLimit:5},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}
+      x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:6,autoSkip:true},grid:{display:false}},
+      y:{ticks:{color:'#7a7870',font:{size:9},callback:v=>fmtV(v),maxTicksLimit:4},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}
     }
   };
 }
@@ -629,7 +679,6 @@ function printReport() {
 <h2>Giai đoạn rút tiền</h2>
 <table><thead><tr><th>Năm</th><th>Tuổi</th><th>Rút ra</th><th>Lãi sinh ra</th><th>Tình trạng</th><th>Danh mục</th></tr></thead><tbody><tr class="sep"><td colspan="6">Bắt đầu rút tiền · chi tiêu tăng ${s.inflation}%/năm</td></tr>${postHtml}</tbody></table>`;
   } else {
-    // ✅ FIX: Lấy dữ liệu table từ DOM cho chế độ growth
     const tableBody=document.getElementById('tableBody');
     const rows=Array.from(tableBody.querySelectorAll('tr'));
     const tableHtml=rows.map(tr=>{
